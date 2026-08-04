@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  contracts:
+    name: Contracts (Build & Test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32v1-none
+
+      - name: Pin transitive ed25519 dependencies
+        run: |
+          cargo generate-lockfile
+          cargo update -p ed25519@3.0.0 --precise 2.2.3 || true
+          cargo update -p ed25519-dalek@3.0.0 --precise 2.1.1 || true
+
+      - run: cargo build --release --target wasm32v1-none
+      - run: cargo test --all --features testutils
