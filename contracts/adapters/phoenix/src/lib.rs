@@ -8,3 +8,5 @@ pub struct PhoenixAdapterContract;
 impl PhoenixAdapterContract {
     pub fn version(_env: Env) -> u32 { 1 }
 }
+
+mod test;
