@@ -5,7 +5,6 @@
 
 [![CI](https://github.com/stellar-zklab/soroban-yield-vault/actions/workflows/ci.yml/badge.svg)](https://github.com/stellar-zklab/soroban-yield-vault/actions/workflows/ci.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Stellar Drips Wave](https://img.shields.io/badge/Stellar-Drips%20Wave-blueviolet)](https://drips.network)
 [![Soroban Version](https://img.shields.io/badge/Soroban-v22.0.0-orange)](https://developers.stellar.org)
 
 ---
@@ -30,38 +29,6 @@ Modeled after the **ERC-4626 Tokenized Vault Standard**, it allows liquidity pro
 
 ---
 
-## Protocol Architecture & Capital Flow
-
-```
-                               ┌───────────────────────────────────┐
-                               │            LIQUIDITY PROVIDER     │
-                               └─────────────────┬─────────────────┘
-                                                 │ deposit(Asset)
-                                                 ▼
-                               ┌───────────────────────────────────┐
-                               │           VaultContract           │
-                               │           (ERC-4626 Shares)       │
-                               └─────────────────┬─────────────────┘
-                                                 │ allocate()
-                                                 ▼
-                               ┌───────────────────────────────────┐
-                               │      StrategyRouterContract       │
-                               └────────┬─────────────────┬────────┘
-                                        │                 │
-                   ┌────────────────────┘                 └────────────────────┐
-                   ▼                                                           ▼
-    ┌───────────────────────────────┐                           ┌───────────────────────────────┐
-    │     BlendAdapterContract      │                           │    PhoenixAdapterContract     │
-    └──────────────┬────────────────┘                           └──────────────┬────────────────┘
-                   │                                                           │
-                   ▼                                                           ▼
-    ┌───────────────────────────────┐                           ┌───────────────────────────────┐
-    │     Blend Capital Pool        │                           │       Phoenix DEX Pool        │
-    └───────────────────────────────┘                           └───────────────────────────────┘
-```
-
----
-
 ## Cryptographic & Mathematical Specification
 
 ### 1. ERC-4626 Share Pricing Math
@@ -71,15 +38,6 @@ $$S = \begin{cases}
 A & \text{if } S_{\text{total}} = 0 \lor A_{\text{total}} = 0 \\
 \frac{A \cdot S_{\text{total}}}{A_{\text{total}}} & \text{otherwise}
 \end{cases}$$
-
-Where:
-- $S_{\text{total}}$ is the total supply of vault shares (`TotalShares`).
-- $A_{\text{total}}$ is the total underlying asset balance controlled by the vault (`total_assets`).
-
-### 2. Share Withdrawal Formula
-When redeeming shares $S$ for underlying assets $A_{\text{return}}$:
-
-$$A_{\text{return}} = \frac{S \cdot A_{\text{total}}}{S_{\text{total}}}$$
 
 ---
 
@@ -92,46 +50,9 @@ Initializes the vault with underlying token asset and strategy router address.
 
 #### `deposit(env: Env, caller: Address, amount: i128) -> i128`
 Transfers `amount` of underlying asset to escrow and mints proportional vault shares to `caller`.
-- **Returns**: Number of vault shares minted (`i128`).
 
 #### `withdraw(env: Env, caller: Address, shares: i128) -> i128`
 Burns `shares` from `caller` and transfers proportional underlying asset balance.
-- **Returns**: Amount of underlying asset returned (`i128`).
-
-#### `total_assets(env: Env) -> i128`
-Returns total underlying asset balance managed by the contract.
-
-#### `get_share_balance(env: Env, user: Address) -> i128`
-Returns vault share balance for a given user address.
-
----
-
-### 2. `StrategyRouterContract` (`contracts/strategy_router`)
-Routes vault liquidity across registered strategy adapters and rebalances capital allocation.
-
----
-
-### 3. Strategy Adapters (`contracts/adapters/blend` & `contracts/adapters/phoenix`)
-Implements standardized interface for external protocol deposits, withdrawals, and yield harvesting.
-
----
-
-## Directory Structure
-
-```
-soroban-yield-vault/
-├── contracts/
-│   ├── vault/                # ERC-4626 tokenized vault contract
-│   ├── strategy_router/      # Capital allocator & rebalancing router
-│   └── adapters/
-│       ├── blend/            # Blend Capital lending protocol adapter
-│       └── phoenix/          # Phoenix DEX LP yield adapter
-├── sdk/                      # TypeScript SDK
-├── frontend/                 # React yield optimizer dashboard
-├── docs/                     # Architecture, strategies, deployment guides
-└── scripts/
-    └── deploy.sh             # Testnet deployment script
-```
 
 ---
 
@@ -150,27 +71,17 @@ cargo test --all --features testutils
 cargo build --release --target wasm32v1-none
 ```
 
-### Testnet Deployment
-
-```bash
-cp .env.example .env
-# Set STELLAR_ACCOUNT in .env
-bash scripts/deploy.sh
-```
-
 ---
 
-## 🌊 Contributing — Stellar Drips Wave
+## 🤝 Contributing & Community Roadmap
 
-`soroban-yield-vault` participates in the **[Stellar Drips Wave](https://drips.network)** program.
+`soroban-yield-vault` is an open-source yield primitive for Stellar. We welcome contributions from developers, quantitative strategists, and protocol integration teams!
 
-| Category | Points | Tasks |
-|---|---|---|
-| 🔴 **High Complexity** | 200 pts | Share calculation math, Strategy Router, protocol adapters |
-| 🟡 **Medium Complexity** | 150 pts | Emergency pause, TypeScript SDK, React dashboard |
-| 🟢 **Trivial Complexity** | 100 pts | Documentation, deployment scripts, APY view functions |
-
-Browse open issues on [GitHub Issues](https://github.com/stellar-zklab/soroban-yield-vault/issues).
+### How to Contribute
+1. **Explore Issues**: Check out open tasks tagged [`good-first-issue`](https://github.com/stellar-zklab/soroban-yield-vault/issues?q=is%3Aissue+is%3Aopen+label%3A%22good-first-issue%22) or [`help-wanted`](https://github.com/stellar-zklab/soroban-yield-vault/issues).
+2. **Fork & Branch**: Create a feature branch (`git checkout -b feat/your-feature`).
+3. **Test Your Changes**: Ensure all unit tests pass (`cargo test --all --features testutils`).
+4. **Submit a Pull Request**: Open a PR with a clear summary of your changes.
 
 ---
 
