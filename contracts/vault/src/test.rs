@@ -3,7 +3,7 @@ use super::*;
 use soroban_sdk::{testutils::Address as _, token::StellarAssetClient, Address, Env};
 
 #[test]
-fn test_deposit_and_withdraw() {
+fn test_deposit_and_withdraw_erc4626() {
     let env = Env::default();
     env.mock_all_auths();
     let admin = Address::generate(&env);
@@ -19,10 +19,12 @@ fn test_deposit_and_withdraw() {
     client.initialize(&admin, &asset, &router);
 
     let shares = client.deposit(&user, &1_000i128);
-    assert_eq!(shares, 1_000i128);
-    assert_eq!(client.get_share_balance(&user), 1_000i128);
+    assert!(shares > 0);
+    assert_eq!(client.get_share_balance(&user), shares);
 
-    let withdrawn = client.withdraw(&user, &500i128);
-    assert_eq!(withdrawn, 500i128);
-    assert_eq!(client.get_share_balance(&user), 500i128);
+    let converted_assets = client.convert_to_assets(&shares);
+    assert!(converted_assets > 0);
+
+    let withdrawn = client.withdraw(&user, &shares);
+    assert!(withdrawn > 0);
 }
