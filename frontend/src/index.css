@@ -1,0 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #06120e;
+  color: #e2e8f0;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] { -moz-appearance: textfield; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #06120e; }
+::-webkit-scrollbar-thumb { background: #163e30; border-radius: 3px; }
