@@ -1,6 +1,6 @@
 #![cfg(test)]
 use super::*;
-use soroban_sdk::{testutils::Address as _, Env};
+use soroban_sdk::Env;
 
 #[test]
 fn test_blend_adapter_version() {

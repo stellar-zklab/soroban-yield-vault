@@ -9,9 +9,16 @@ Automated Tokenized Yield Optimizer & Strategy Router across Blend Capital Lendi
 
 ## Current Status — what's real vs. not
 
-**`contracts/vault` — the share accounting is real, deposits are one-way right now.** `convert_to_shares`/`convert_to_assets`/`deposit` correctly implement the Yearn V3 virtual-offset inflation-attack protection (`(assets * (total_shares + 1000)) / (total_assets + 1000)`) — this is genuine, correct DeFi security engineering, not filler. But there's **no `withdraw`/`redeem` function at all yet** — deposited funds currently have no way back out.
+**`contracts/vault` — real deposits and withdrawals, both actually move tokens.** `convert_to_shares`/`convert_to_assets` correctly implement the Yearn V3 virtual-offset inflation-attack protection (`(assets * (total_shares + 1000)) / (total_assets + 1000)`) — this is genuine, correct DeFi security engineering, not filler. `deposit()` now actually pulls the real underlying token from the caller via `TokenClient::transfer` before crediting shares — previously it only updated internal share counters and never moved a real token at all, so a caller could mint shares against assets the vault never held. `withdraw()` is new: it burns shares and pays real tokens back out, and rejects a caller trying to redeem more shares than they actually hold (checked against `initialize(admin, token)`'s registered token, not a per-call address, so it can't be pointed at a different asset). Covered by 4 tests that check actual token balances moving, not just share counters, including two depositors independently withdrawing their own share of a shared pool.
 
-**The actual "yield optimizer" — not implemented.** `contracts/adapters/blend`, `contracts/adapters/phoenix`, and `contracts/strategy_router` are each a bare `#[contract]` with a single `version() -> 1` function and nothing else — no Blend lending integration, no Phoenix DEX integration, no rebalancing logic. The vault's `deposit()` doesn't call into the strategy router at all; deposited assets just sit in the vault contract's own balance. The headline feature of this repo — routing deposits into real yield strategies — doesn't exist yet.
+**The actual "yield optimizer" — not implemented.** `contracts/adapters/blend`, `contracts/adapters/phoenix`, and `contracts/strategy_router` are each a bare `#[contract]` with a single `version() -> 1` function and nothing else — no Blend lending integration, no Phoenix DEX integration, no rebalancing logic. The vault's `deposit()` still doesn't call into the strategy router; deposited assets sit in the vault contract's own token balance, held but not put to work. The headline feature of this repo — routing deposits into real yield strategies — doesn't exist yet, and needs real Blend/Phoenix protocol integration work this repo hasn't attempted.
+
+## Deployment
+
+`scripts/deploy.sh` deploys and initializes `vault` against testnet's real native XLM
+Stellar Asset Contract — see [`docs/DEPLOYMENT_GUIDE.md`](docs/DEPLOYMENT_GUIDE.md). The
+stub adapters and strategy router are deliberately not deployed. Resulting contract ID
+lands in `deployments/testnet.json`.
 
 ## 🚀 Quick Start
 ```bash
