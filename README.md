@@ -15,10 +15,19 @@ Automated Tokenized Yield Optimizer & Strategy Router across Blend Capital Lendi
 
 ## Deployment
 
-`scripts/deploy.sh` deploys and initializes `vault` against testnet's real native XLM
-Stellar Asset Contract — see [`docs/DEPLOYMENT_GUIDE.md`](docs/DEPLOYMENT_GUIDE.md). The
-stub adapters and strategy router are deliberately not deployed. Resulting contract ID
-lands in `deployments/testnet.json`.
+`vault` is live on Stellar testnet (deployed 2026-09-03, see
+[`deployments/testnet.json`](deployments/testnet.json) — independently checkable on
+[stellar.expert](https://stellar.expert/explorer/testnet)):
+
+| Contract | Address |
+|---|---|
+| `vault` | `CC3KUCEJ7PXTJSHTFE3K52OR2U4QICJ7IUJG7YHXTIBQ62KSMH4G2HCR` |
+
+It's initialized against testnet's real native XLM Stellar Asset Contract
+(`CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC`), not a placeholder token. The
+stub adapters and strategy router are deliberately not deployed — see
+[`docs/DEPLOYMENT_GUIDE.md`](docs/DEPLOYMENT_GUIDE.md). `scripts/deploy.sh` reproduces this
+from scratch.
 
 ## 🚀 Quick Start
 ```bash

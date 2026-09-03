@@ -1,0 +1,12 @@
+{
+  "network": "testnet",
+  "deployed_at": "2026-09-03T03:55:26Z",
+  "deployer": "GAUZ4T6UT7XMGOL6WYPWWSYPZQ7ZLILCAS2ROYCH5ILHHOWQYUGVRTAB",
+  "native_token": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+  "contracts": {
+    "vault": "CC3KUCEJ7PXTJSHTFE3K52OR2U4QICJ7IUJG7YHXTIBQ62KSMH4G2HCR"
+  },
+  "notes": {
+    "adapters_and_strategy_router": "Not deployed — still stubs, see README Current Status."
+  }
+}
