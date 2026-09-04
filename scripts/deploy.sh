@@ -18,9 +18,9 @@ mkdir -p "$OUT_DIR"
 
 echo "Deploying soroban-yield-vault to Stellar $NETWORK..."
 
-if ! stellar keys ls | grep -q "^deployer$"; then
+if ! stellar keys address deployer >/dev/null 2>&1; then
   echo "Generating deployer key..."
-  stellar keys generate deployer --global
+  stellar keys generate deployer
 fi
 stellar keys fund deployer --network "$NETWORK" || true
 DEPLOYER_ADDR=$(stellar keys address deployer)
