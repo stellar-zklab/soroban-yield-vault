@@ -3,3 +3,5 @@ target/
 node_modules/
 frontend/dist/
 sdk/dist/
+
+.claude/
