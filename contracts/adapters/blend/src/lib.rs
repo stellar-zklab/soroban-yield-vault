@@ -46,9 +46,9 @@ pub struct BlendPositions {
 
 /// Blend's real ReserveConfig (pool/src/storage.rs). Verified field-for-field against a
 /// live pool's actual get_reserve() response on testnet — an earlier version of this struct
-/// had an invented `util` field that doesn't exist on-chain and was missing `enabled` and
-/// `supply_cap`, which caused a real deserialization failure the first time this adapter was
-/// deployed against the real pool instead of the test mock.
+/// was missing `enabled` and `supply_cap`, which real Blend V2 does return, and caused a
+/// real deserialization failure the first time this adapter was deployed against the real
+/// pool instead of the test mock.
 #[derive(Clone)]
 #[contracttype]
 pub struct BlendReserveConfig {
@@ -56,6 +56,7 @@ pub struct BlendReserveConfig {
     pub decimals: u32,
     pub c_factor: u32,
     pub l_factor: u32,
+    pub util: u32,
     pub max_util: u32,
     pub r_base: u32,
     pub r_one: u32,
