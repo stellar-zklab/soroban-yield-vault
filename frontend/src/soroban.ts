@@ -7,7 +7,7 @@ import freighter from '@stellar/freighter-api';
 export const NETWORK_PASSPHRASE = 'Test SDF Network ; September 2015';
 export const RPC_URL = 'https://soroban-testnet.stellar.org';
 
-export const VAULT_CONTRACT_ID = 'CC3KUCEJ7PXTJSHTFE3K52OR2U4QICJ7IUJG7YHXTIBQ62KSMH4G2HCR';
+export const VAULT_CONTRACT_ID = 'CAUGDNJ4TUBNSMV6CIL356GLPTA77UFC3PNUQ7OKEFLRPY7TBJ3VWGP6';
 export const NATIVE_TOKEN_ID = 'CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC';
 
 // The native XLM Stellar Asset Contract, like all Stellar assets, uses 7 decimal places

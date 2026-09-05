@@ -17,23 +17,30 @@ Automated Tokenized Yield Optimizer & Strategy Router across Blend Capital Lendi
 
 ## Deployment
 
-`vault` is live on Stellar testnet (deployed 2026-09-03, see
-[`deployments/testnet.json`](deployments/testnet.json) — independently checkable on
-[stellar.expert](https://stellar.expert/explorer/testnet)):
+All three contracts are live on Stellar testnet and wired together (deployed/redeployed
+2026-09-05, see [`deployments/testnet.json`](deployments/testnet.json) — independently
+checkable on [stellar.expert](https://stellar.expert/explorer/testnet)):
 
 | Contract | Address |
 |---|---|
-| `vault` | `CC3KUCEJ7PXTJSHTFE3K52OR2U4QICJ7IUJG7YHXTIBQ62KSMH4G2HCR` |
+| `vault` | `CAUGDNJ4TUBNSMV6CIL356GLPTA77UFC3PNUQ7OKEFLRPY7TBJ3VWGP6` |
+| `strategy_router` | `CBRIDAO4NYYGMEUBYVSZ6O6U3SD73XHWLUDN56R3QPPLS2CTXAAPTBF4` |
+| `adapter_blend` | `CA4EF5DW4ZOLPETNFRGNWZUNCOUIZ4NIR5STGDZ56VCOJ3L7PZ7PP3X2` |
 
-It's initialized against testnet's real native XLM Stellar Asset Contract
+`vault` is initialized against testnet's real native XLM Stellar Asset Contract
 (`CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC`), not a placeholder token.
-`scripts/deploy.sh` reproduces this from scratch.
+`adapter_blend` targets a real, live [Blend Protocol V2](https://github.com/blend-capital/blend-contracts-v2)
+pool on testnet (`CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF`) — confirmed to
+actually carry an XLM reserve via a real `get_reserve()` call before this deployment was
+wired up. `vault.set_router()` points the vault at `strategy_router`, and
+`strategy_router.set_strategy()` points it at `adapter_blend`, so a real `deposit()` on
+`vault` now actually reaches the Blend pool. `scripts/deploy.sh` and
+`scripts/deploy_blend_strategy.sh` reproduce this from scratch.
 
-`strategy_router` and `adapter-blend` are real and fully tested (see above) but not yet
-deployed to testnet as of this writing — `scripts/deploy_blend_strategy.sh` deploys both,
-wires them to the already-deployed vault, and verifies the target Blend pool actually
-supports the vault's asset before finishing. Once run, `deployments/testnet.json` and this
-section will reflect their live addresses.
+An earlier `vault` instance (`CC3KUCEJ7PXTJSHTFE3K52OR2U4QICJ7IUJG7YHXTIBQ62KSMH4G2HCR`,
+deployed 2026-09-03) predated the `set_router()` entrypoint and is stale — see
+`deployments/testnet.json`'s notes for why a vault redeploy was unavoidable once router
+integration landed.
 
 ## 🚀 Quick Start
 ```bash

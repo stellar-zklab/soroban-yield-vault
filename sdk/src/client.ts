@@ -16,10 +16,6 @@ export type SignTransaction = (
 
 export interface StellarYieldVaultConfig {
   vaultContractId: string;
-  /** The SAC token this vault holds (e.g. native XLM's contract id). Needed only for
-   * getTotalAssets(), which reads it as the vault's real balance of that token — the vault
-   * contract itself has no public total_assets() getter, only an internal counter. */
-  underlyingTokenId?: string;
   rpcUrl?: string;
   networkPassphrase?: string;
   signTransaction: SignTransaction;
@@ -37,14 +33,12 @@ export interface VaultWithdrawParams {
 
 export class StellarYieldVaultClient {
   private vaultContractId: string;
-  private underlyingTokenId?: string;
   private rpcUrl: string;
   private networkPassphrase: string;
   private signTransaction: SignTransaction;
 
   constructor(config: StellarYieldVaultConfig) {
     this.vaultContractId = config.vaultContractId;
-    this.underlyingTokenId = config.underlyingTokenId;
     this.rpcUrl = config.rpcUrl ?? 'https://soroban-testnet.stellar.org';
     this.networkPassphrase = config.networkPassphrase ?? 'Test SDF Network ; September 2015';
     this.signTransaction = config.signTransaction;
@@ -85,18 +79,14 @@ export class StellarYieldVaultClient {
     return { amountReturned: sent.result as bigint, txHash: sent.sendTransactionResponse?.hash ?? sent.getTransactionResponse?.txHash ?? '' };
   }
 
-  /** Read-only: the vault's real total managed assets. The vault contract has no public
-   * total_assets() getter (only an internal counter), so this reads the vault's real
-   * balance of `underlyingTokenId` directly from that SAC token instead — deposits move
-   * real tokens into the vault and adapters currently hold nothing, so the vault's own
-   * token balance equals its total managed assets. Requires `underlyingTokenId` to have
-   * been passed in the constructor config. */
+  /** Read-only: the vault's real total managed assets, straight from the vault contract's
+   * own `total_assets()` — whatever it's holding idle plus whatever its strategy router
+   * reports as the real current value of deployed funds (including accrued yield). Correct
+   * whether or not a strategy is configured, since the vault computes this live rather than
+   * this SDK approximating it from the underlying token's balance. */
   async getTotalAssets(): Promise<bigint> {
-    if (!this.underlyingTokenId) {
-      throw new Error('getTotalAssets() requires underlyingTokenId in the client config');
-    }
-    const tokenClient = await this.getClient(undefined, this.underlyingTokenId);
-    const tx = await (tokenClient as any).balance({ id: this.vaultContractId });
+    const client = await this.getClient();
+    const tx = await (client as any).total_assets();
     return tx.result as bigint;
   }
 

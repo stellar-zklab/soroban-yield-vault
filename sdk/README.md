@@ -19,8 +19,7 @@ import { StellarYieldVaultClient } from '@stellar-zklab/yield-vault-sdk';
 import freighter from '@stellar/freighter-api';
 
 const vault = new StellarYieldVaultClient({
-  vaultContractId: 'CC3KUCEJ7PXTJSHTFE3K52OR2U4QICJ7IUJG7YHXTIBQ62KSMH4G2HCR',
-  underlyingTokenId: 'CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC', // native XLM SAC
+  vaultContractId: 'CAUGDNJ4TUBNSMV6CIL356GLPTA77UFC3PNUQ7OKEFLRPY7TBJ3VWGP6',
   signTransaction: async (xdr, opts) => {
     const { signedTxXdr } = await freighter.signTransaction(xdr, opts);
     return signedTxXdr;
@@ -31,14 +30,15 @@ const { sharesMinted, txHash } = await vault.deposit({ depositor: userAddress, a
 const totalAssets = await vault.getTotalAssets();
 ```
 
-The vault contract itself has no public `total_assets()` getter (only an internal
-counter), so `getTotalAssets()` reads the vault's real balance of `underlyingTokenId`
-directly from that SAC token instead — correct today because deposits move real tokens
-into the vault and the yield-strategy adapters currently hold nothing, but it will need
-to change if/when the router actually starts routing funds to adapters.
+`getTotalAssets()` calls the vault contract's own real `total_assets()` entrypoint
+directly — idle balance plus whatever the configured strategy router reports as the real
+current value of deployed funds, including accrued yield. This stays correct whether or
+not a router/strategy is configured, since the vault computes it live rather than this SDK
+approximating it from a token balance.
 
 ## Not implemented
 
-The vault's strategy adapters (Blend, Phoenix) and `strategy_router` are inert
-placeholders on-chain (see the main repo README) — this SDK has nothing to wrap there
-yet, since there's no real routing behavior to call.
+`adapter-phoenix` is still an inert placeholder on-chain, deliberately (see the main repo
+README's Current Status section for why) — this SDK has nothing to wrap there. Blend is
+real: see the main repo README for the deployed `strategy_router`/`adapter_blend`
+addresses this vault is actually wired to.

@@ -4,9 +4,13 @@
   "deployer": "GAUZ4T6UT7XMGOL6WYPWWSYPZQ7ZLILCAS2ROYCH5ILHHOWQYUGVRTAB",
   "native_token": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
   "contracts": {
-    "vault": "CC3KUCEJ7PXTJSHTFE3K52OR2U4QICJ7IUJG7YHXTIBQ62KSMH4G2HCR"
+    "vault": "CAUGDNJ4TUBNSMV6CIL356GLPTA77UFC3PNUQ7OKEFLRPY7TBJ3VWGP6",
+    "strategy_router": "CBRIDAO4NYYGMEUBYVSZ6O6U3SD73XHWLUDN56R3QPPLS2CTXAAPTBF4",
+    "adapter_blend": "CA4EF5DW4ZOLPETNFRGNWZUNCOUIZ4NIR5STGDZ56VCOJ3L7PZ7PP3X2"
   },
   "notes": {
-    "adapters_and_strategy_router": "Not deployed — still stubs, see README Current Status."
+    "vault": "Redeployed 2026-09-05T17:27:10Z because the previous vault (CC3KUCEJ7PXTJSHTFE3K52OR2U4QICJ7IUJG7YHXTIBQ62KSMH4G2HCR) predated the set_router() entrypoint added when this workspace wired in a real strategy — that instance has no way to ever be pointed at a router and is stale.",
+    "strategy_router": "Deployed 2026-09-05T17:27:10Z. Real deposit()/withdraw()/total_assets() forwarding to adapter_blend — no mock, no placeholder.",
+    "adapter_blend": "Deployed 2026-09-05T17:27:10Z, targets a real deployed Blend Protocol V2 pool (CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF) on testnet. Supplies/withdraws real tokens via the pool's real submit(), reads real accrued value via get_reserve()/get_positions() — see contracts/adapters/blend/src/lib.rs."
   }
 }
