@@ -5,8 +5,8 @@ Briefly describe what this PR changes or implements.
 Closes #
 
 ## ✅ Checklist
-- [ ] Code compiles cleanly (\`cargo build --release --target wasm32v1-none\`)
-- [ ] Smart contract unit tests pass (\`cargo test --all --features testutils\`)
-- [ ] Code adheres to Rust formatting guidelines (\`cargo fmt -- --check\`)
-- [ ] Follows Conventional Commits standard (\`feat:\`, \`fix:\`, \`docs:\`)
+- [ ] Code compiles cleanly (`cargo build --release --target wasm32v1-none`)
+- [ ] Smart contract unit tests pass (`cargo test --all --features testutils`)
+- [ ] Code adheres to Rust formatting guidelines (`cargo fmt -- --check`)
+- [ ] Follows Conventional Commits standard (`feat:`, `fix:`, `docs:`)
 
