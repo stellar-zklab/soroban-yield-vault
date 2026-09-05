@@ -62,3 +62,24 @@ fixed-point division itself from data the pool already provides.
 Whatever set of contracts it wraps, it needs to implement the same three-function
 interface above, with the same `total_value()` guarantee: a live, protocol-native
 computation of current worth, not a cached number from whenever funds were last moved.
+
+## Why `adapter-phoenix` specifically isn't a Blend-style port
+
+Checked directly against [phoenix-contracts](https://github.com/Phoenix-Protocol-Group/phoenix-contracts):
+Phoenix's `pool` contract's `provide_liquidity()` takes both `desired_a` and `desired_b` —
+there's no single-asset `Supply`-equivalent the way Blend has. Its real yield mechanism is
+liquidity provision (earning trading fees) plus staking the resulting LP shares in a
+separate `stake` contract for additional reward emissions (`stake` bonds `lp_token`
+specifically, not any raw asset). A real adapter would need to: swap roughly half of every
+deposit into a paired asset, call `provide_liquidity(..., auto_stake: true)`, and on
+withdrawal reverse that (`withdraw_liquidity` with `auto_unstake`, then swap the non-native
+portion back). `total_value()` would need `query_share()` to convert staked LP shares back
+into both underlying assets, plus a price reference to express the paired asset's amount
+in terms of the vault's own asset — itself a real oracle-security question (a naive
+`simulate_swap()`-based spot price is manipulable).
+
+None of this is infeasible — it's a real, buildable integration — but it changes what
+"depositing in this vault" exposes a user to: real impermanent-loss and slippage risk on
+top of (or instead of) lending-style interest. That's a product decision, not an
+implementation detail, which is why this wasn't built silently alongside the Blend
+adapter. See the main README's Current Status for where that decision currently stands.
