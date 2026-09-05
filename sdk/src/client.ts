@@ -1,6 +1,30 @@
 /**
- * StellarYieldVaultClient — TypeScript SDK wrapper for soroban-yield-vault smart contracts
+ * StellarYieldVaultClient — TypeScript SDK wrapper for soroban-yield-vault smart contracts.
+ *
+ * This wraps the same `@stellar/stellar-sdk/contract` Client the deployed frontend uses
+ * (see ../../frontend/src/soroban.ts) — real simulate/sign/submit calls against a real
+ * Soroban RPC endpoint, not fixture data. Signing is injected via `signTransaction` rather
+ * than hard-wired to Freighter, so this SDK works with any wallet adapter that can produce
+ * a signed transaction XDR (Freighter, a server-side signer, xBull, etc.).
  */
+import { Client as ContractClient } from '@stellar/stellar-sdk/contract';
+
+export type SignTransaction = (
+  xdr: string,
+  opts?: { network?: string; networkPassphrase?: string; accountToSign?: string }
+) => Promise<string>;
+
+export interface StellarYieldVaultConfig {
+  vaultContractId: string;
+  /** The SAC token this vault holds (e.g. native XLM's contract id). Needed only for
+   * getTotalAssets(), which reads it as the vault's real balance of that token — the vault
+   * contract itself has no public total_assets() getter, only an internal counter. */
+  underlyingTokenId?: string;
+  rpcUrl?: string;
+  networkPassphrase?: string;
+  signTransaction: SignTransaction;
+}
+
 export interface VaultDepositParams {
   depositor: string;
   amount: bigint;
@@ -13,23 +37,89 @@ export interface VaultWithdrawParams {
 
 export class StellarYieldVaultClient {
   private vaultContractId: string;
-  private networkUrl: string;
+  private underlyingTokenId?: string;
+  private rpcUrl: string;
+  private networkPassphrase: string;
+  private signTransaction: SignTransaction;
 
-  constructor(vaultContractId: string, networkUrl: string = 'https://soroban-testnet.stellar.org') {
-    this.vaultContractId = vaultContractId;
-    this.networkUrl = networkUrl;
+  constructor(config: StellarYieldVaultConfig) {
+    this.vaultContractId = config.vaultContractId;
+    this.underlyingTokenId = config.underlyingTokenId;
+    this.rpcUrl = config.rpcUrl ?? 'https://soroban-testnet.stellar.org';
+    this.networkPassphrase = config.networkPassphrase ?? 'Test SDF Network ; September 2015';
+    this.signTransaction = config.signTransaction;
   }
 
+  private async getClient(publicKey?: string, contractId: string = this.vaultContractId) {
+    return ContractClient.from({
+      contractId,
+      networkPassphrase: this.networkPassphrase,
+      rpcUrl: this.rpcUrl,
+      publicKey,
+      signTransaction: this.signTransaction,
+    });
+  }
+
+  /** Real, live deposit call — moves the caller's real tokens into the vault and mints
+   * real shares using the vault's actual on-chain Yearn V3 virtual-offset formula.
+   * Requires `params.depositor` to sign. */
   async deposit(params: VaultDepositParams): Promise<{ sharesMinted: bigint; txHash: string }> {
-    // SDK implementation method (see issue #7)
-    return { sharesMinted: params.amount, txHash: 'mock_tx_hash' };
+    const client = await this.getClient(params.depositor);
+    const tx = await (client as any).deposit(
+      { caller: params.depositor, assets: params.amount },
+      { timeoutInSeconds: 1800 }
+    );
+    const sent = await tx.signAndSend();
+    return { sharesMinted: sent.result as bigint, txHash: sent.sendTransactionResponse?.hash ?? sent.getTransactionResponse?.txHash ?? '' };
   }
 
+  /** Real, live withdraw call — burns real shares and pays out the corresponding real
+   * underlying asset amount, computed by the vault's own on-chain math. */
   async withdraw(params: VaultWithdrawParams): Promise<{ amountReturned: bigint; txHash: string }> {
-    return { amountReturned: params.shares, txHash: 'mock_tx_hash' };
+    const client = await this.getClient(params.withdraw_address);
+    const tx = await (client as any).withdraw(
+      { caller: params.withdraw_address, shares: params.shares },
+      { timeoutInSeconds: 1800 }
+    );
+    const sent = await tx.signAndSend();
+    return { amountReturned: sent.result as bigint, txHash: sent.sendTransactionResponse?.hash ?? sent.getTransactionResponse?.txHash ?? '' };
   }
 
+  /** Read-only: the vault's real total managed assets. The vault contract has no public
+   * total_assets() getter (only an internal counter), so this reads the vault's real
+   * balance of `underlyingTokenId` directly from that SAC token instead — deposits move
+   * real tokens into the vault and adapters currently hold nothing, so the vault's own
+   * token balance equals its total managed assets. Requires `underlyingTokenId` to have
+   * been passed in the constructor config. */
   async getTotalAssets(): Promise<bigint> {
-    return 0n;
+    if (!this.underlyingTokenId) {
+      throw new Error('getTotalAssets() requires underlyingTokenId in the client config');
+    }
+    const tokenClient = await this.getClient(undefined, this.underlyingTokenId);
+    const tx = await (tokenClient as any).balance({ id: this.vaultContractId });
+    return tx.result as bigint;
+  }
+
+  /** Read-only: a given user's real share balance. */
+  async getShareBalance(user: string): Promise<bigint> {
+    const client = await this.getClient();
+    const tx = await (client as any).balance_of({ user });
+    return tx.result as bigint;
+  }
+
+  /** Read-only: previews the real share amount a deposit of `assets` would mint right now,
+   * simulated against the vault's real on-chain totals. */
+  async previewDeposit(assets: bigint): Promise<bigint> {
+    const client = await this.getClient();
+    const tx = await (client as any).convert_to_shares({ assets });
+    return tx.result as bigint;
+  }
+
+  /** Read-only: previews the real asset amount a withdrawal of `shares` would return right
+   * now, simulated against the vault's real on-chain totals. */
+  async previewWithdraw(shares: bigint): Promise<bigint> {
+    const client = await this.getClient();
+    const tx = await (client as any).convert_to_assets({ shares });
+    return tx.result as bigint;
   }
 }
