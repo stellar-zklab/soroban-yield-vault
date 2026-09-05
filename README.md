@@ -17,29 +17,36 @@ Automated Tokenized Yield Optimizer & Strategy Router across Blend Capital Lendi
 ## Architecture
 
 ```
-┌──────────────┐     deposit/withdraw     ┌──────────────┐
-│  Depositor   │ ───────────────────────► │    vault     │
-│ (SDK/Wallet) │ ◄─────────────────────── │  (ERC-4626-  │
-└──────────────┘      shares/assets       │  style math) │
-                                           └──────┬───────┘
-                                                  │ forwards funds
-                                                  ▼
-                                          ┌──────────────────┐
-                                          │  strategy_router  │
-                                          │ (single active     │
-                                          │  strategy today)   │
-                                          └─────────┬─────────┘
-                                                    │
-                                                    ▼
-                                          ┌──────────────────┐
-                                          │   adapter_blend   │
-                                          └─────────┬─────────┘
-                                                    │ submit() / get_reserve()
-                                                    ▼
-                                     ┌───────────────────────────┐
-                                     │  Blend Protocol V2 pool    │
-                                     │  (real, live, testnet)     │
-                                     └───────────────────────────┘
++----------------------------+
+|         Depositor          |
+|       (SDK / Wallet)       |
++----------------------------+
+            |  deposit() / withdraw()
+            v
++----------------------------+
+|           vault            |
+|      (ERC-4626-style       |
+|        share math)         |
++----------------------------+
+            |  set_router() -> forwards funds
+            v
++----------------------------+
+|      strategy_router       |
+|       (single active       |
+|      strategy today)       |
++----------------------------+
+            |  set_strategy()
+            v
++----------------------------+
+|       adapter_blend        |
++----------------------------+
+            |  submit() / get_reserve()
+            v
++----------------------------+
+|     Blend Protocol V2      |
+|     pool (real, live,      |
+|          testnet)          |
++----------------------------+
 ```
 
 ## Current Status — what's real vs. not
