@@ -2,7 +2,7 @@
 
 ![Soroban](https://img.shields.io/badge/Soroban-Protocol_22-blue?style=flat&logo=stellar)
 ![License](https://img.shields.io/badge/License-Apache_2.0-green)
-![Build](https://img.shields.io/badge/Cargo_Test-Passing-brightgreen)
+[![CI](https://github.com/stellar-zklab/soroban-yield-vault/actions/workflows/ci.yml/badge.svg)](https://github.com/stellar-zklab/soroban-yield-vault/actions/workflows/ci.yml)
 ![ERC4626](https://img.shields.io/badge/Vault-Yearn_V3_ERC4626-emerald)
 
 Automated Tokenized Yield Optimizer & Strategy Router across Blend Capital Lending and Phoenix DEX Pools on Soroban.
