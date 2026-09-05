@@ -86,8 +86,9 @@ impl MockBlendPool {
         BlendReserve {
             asset,
             config: BlendReserveConfig {
-                index, decimals: 7, c_factor: 0, l_factor: 0, util: 0, max_util: 0,
+                index, decimals: 7, c_factor: 0, l_factor: 0, max_util: 0,
                 r_base: 0, r_one: 0, r_two: 0, r_three: 0, reactivity: 0,
+                enabled: true, supply_cap: i128::MAX,
             },
             data: BlendReserveData {
                 d_rate: B_RATE_SCALAR, b_rate, ir_mod: 0, b_supply: 0, d_supply: 0,
