@@ -8,11 +8,16 @@ We welcome contributions from Rust contract developers, quantitative strategists
 
 ## 🚀 About the Protocol & Ecosystem Impact
 
-`soroban-yield-vault` optimizes liquidity provision across Stellar:
-- Implements the **ERC-4626 Tokenized Vault Standard** for Soroban assets.
-- Dynamically allocates capital across **Blend Capital lending pools** and **Phoenix DEX AMMs**.
-- Auto-compounds strategy rewards back into underlying shares.
-- Protects depositors against flash deposit sandwich attacks.
+`soroban-yield-vault` is a real, tested ERC-4626-style tokenized vault for Soroban:
+- Implements the **ERC-4626 Tokenized Vault Standard** with Yearn V3's virtual-offset
+  inflation-attack protection — genuine share-pricing security math, not filler.
+- Actually deploys deposits to a real, live [Blend Protocol V2](https://github.com/blend-capital/blend-contracts-v2)
+  lending pool on testnet via `strategy_router` + `adapter-blend`, and reads accrued
+  interest back live so depositor share prices reflect real yield, not a stale snapshot.
+- `adapter-phoenix` is deliberately not built yet — Phoenix is a DEX, not a lending pool,
+  and real yield there means swap + two-sided liquidity + staking, with real
+  impermanent-loss exposure. See the main README's Current Status for the full reasoning
+  behind holding off rather than building that in silently.
 
 ---
 
@@ -22,25 +27,24 @@ We welcome contributions from Rust contract developers, quantitative strategists
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                     DEVELOPMENT ROADMAP PHASES                          │
 │                                                                         │
-│  Phase 1: ERC-4626 Vault & Strategy Adapters (Scaffolded & Verified)   │
-│    ├── Vault contract (deposit/withdraw/share math)                     │
-│    ├── StrategyRouter contract                                          │
-│    └── Protocol adapters (adapter-blend, adapter-phoenix)               │
+│  Phase 1: ERC-4626 Vault & Blend Strategy (Built & Tested)             │
+│    ├── Vault contract (deposit/withdraw/share math, real token moves)  │
+│    ├── StrategyRouter contract (single-strategy, real fund forwarding)│
+│    └── adapter-blend: real Blend V2 integration, live testnet pool    │
 │                                                                         │
-│  Phase 2: Yield Analytics & Keeper Bots (Active Contribution)          │
-│    ├── TypeScript SDK (@stellar-zklab/yield-vault-sdk)                 │
-│    ├── Automated Keeper bot for harvest() execution                     │
-│    └── Reflector Oracle price feed integration                          │
+│  Phase 2: SDK & Real Multi-Strategy Support (Active Contribution)      │
+│    ├── TypeScript SDK (@stellar-zklab/yield-vault-sdk) — real, tested │
+│    ├── adapter-phoenix: real swap+LP+stake integration, with IL       │
+│    │   exposure disclosed plainly wherever share price is shown       │
+│    └── strategy_router support for splitting across >1 strategy       │
 │                                                                         │
-│  Phase 3: Vault Dashboard & Multi-Asset Baskets (Upcoming)             │
-│    ├── React Yield Dashboard UI                                         │
-│    ├── Multi-asset basket vault contract (50/50 XLM-USDC pools)         │
-│    └── Historical APY analytics indexer                                 │
+│  Phase 3: Vault Dashboard & Analytics (Upcoming)                       │
+│    ├── React yield dashboard UI                                        │
+│    └── Historical APY tracking from real on-chain events              │
 │                                                                         │
-│  Phase 4: Decentralized Governance & Security (Future)                 │
-│    ├── Strategy weight allocation governance voting                     │
-│    ├── Invariant test suite for share pricing math                      │
-│    └── Flash-loan sandwich attack prevention verification               │
+│  Phase 4: Security Hardening (Future)                                  │
+│    ├── Third-party audit — no audit has happened yet                  │
+│    └── Invariant/fuzz test suite for share-pricing math under yield   │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
