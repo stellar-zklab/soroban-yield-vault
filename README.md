@@ -4,8 +4,11 @@
 ![License](https://img.shields.io/badge/License-Apache_2.0-green)
 [![CI](https://github.com/stellar-zklab/soroban-yield-vault/actions/workflows/ci.yml/badge.svg)](https://github.com/stellar-zklab/soroban-yield-vault/actions/workflows/ci.yml)
 ![ERC4626](https://img.shields.io/badge/Vault-Yearn_V3_ERC4626-emerald)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-soroban--yield--vault.vercel.app-black?style=flat&logo=vercel)](https://soroban-yield-vault.vercel.app/)
 
 Automated Tokenized Yield Optimizer & Strategy Router across Blend Capital Lending and Phoenix DEX Pools on Soroban.
+
+**[🔗 Try the live demo](https://soroban-yield-vault.vercel.app/)** — wired to the real deployed testnet contracts listed below, not a mockup.
 
 ## Why this is a real DeFi primitive, not a demo
 
@@ -111,8 +114,8 @@ See [`sdk/README.md`](sdk/README.md) for the full API (`withdraw`, `getShareBala
 ## Ecosystem
 
 Part of **stellar-zklab**'s Soroban Protocol 25 project suite, alongside:
-- [`stellar-zkident`](https://github.com/stellar-zklab/stellar-zkident) — self-sovereign DID + real Groth16 zero-knowledge credentials
-- [`stellar-zkstream`](https://github.com/stellar-zklab/stellar-zkstream) — privacy-preserving payment streaming with Groth16 range/nullifier proofs
+- [`stellar-zkident`](https://github.com/stellar-zklab/stellar-zkident) — self-sovereign DID + real Groth16 zero-knowledge credentials ([live demo](https://stellar-zkident.vercel.app/))
+- [`stellar-zkstream`](https://github.com/stellar-zklab/stellar-zkstream) — privacy-preserving payment streaming with Groth16 range/nullifier proofs ([live demo](https://stellar-zkstream.vercel.app/))
 
 All three share the same "real vs. not" documentation discipline and the same Protocol 25 BN254/testnet deployment conventions.
 
