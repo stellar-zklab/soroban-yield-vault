@@ -16,6 +16,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check for committed secrets or leftover local artifacts
+        run: bash scripts/check-source-artifacts.sh
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
