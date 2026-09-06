@@ -15,9 +15,12 @@ import {
 // Real integration — this UI talks to the real deployed `vault` contract on Stellar
 // testnet (see ../deployments/testnet.json). Deposits pull real native XLM from the
 // connected wallet and mint real vault shares using the vault's own on-chain virtual-
-// offset math. What's still NOT real: contracts/adapters/blend, contracts/adapters/phoenix
-// and contracts/strategy_router remain bare stubs — deposited assets sit in the vault
-// contract earning no actual yield yet, exactly as the README's Current Status says.
+// offset math. This deployed vault is wired to a real strategy_router + adapter-blend
+// (see deployments/testnet.json's notes — set_router() was called as part of the
+// 2026-09-05 redeploy), which supplies deposits to a real, live Blend Protocol V2
+// lending pool on testnet, so deposited assets do earn real accrued interest. What's
+// NOT real: contracts/adapters/phoenix remains a deliberate stub — see the README's
+// Current Status for why that one's held off rather than built silently.
 
 export const App: React.FC = () => {
   const [address, setAddress] = useState<string | null>(null);
@@ -30,7 +33,7 @@ export const App: React.FC = () => {
 
   const [logs, setLogs] = useState<string[]>([
     `[REAL] This app talks to the real deployed vault contract ${VAULT_CONTRACT_ID} on Stellar testnet — deposits and withdrawals are real signed transactions moving real testnet XLM (token ${NATIVE_TOKEN_ID}).`,
-    '[NOTE] contracts/adapters and contracts/strategy_router are still stubs — deposited funds sit in the vault earning no real yield yet.',
+    '[NOTE] This vault is wired to a real strategy_router + adapter-blend supplying to a live Blend Protocol V2 pool on testnet — deposits earn real accrued interest. Only adapter-phoenix remains a deliberate stub (see README).',
   ]);
 
   const log = (msg: string) => setLogs((prev) => [...prev, msg]);
@@ -123,7 +126,7 @@ export const App: React.FC = () => {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#06120e', color: '#e2e8f0' }}>
       <div style={{ background: 'linear-gradient(135deg, #047857, #065f46)', color: '#fff', padding: '0.65rem 1.5rem', fontSize: '0.85rem', fontWeight: 600, textAlign: 'center' }}>
-        ✓ REAL vault contract on testnet — deposits/withdrawals are real signed transactions. Strategy routing (Blend/Phoenix) is still stubbed, see README.
+        ✓ REAL vault contract on testnet — deposits earn real yield via a live Blend Protocol V2 pool. Only the Phoenix adapter is still a deliberate stub, see README.
       </div>
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
