@@ -9,7 +9,6 @@ import {
   VAULT_CONTRACT_ID,
   NATIVE_TOKEN_ID,
   STROOPS_PER_XLM,
-  FreighterNotDetectedError,
 } from './soroban';
 
 // Real integration — this UI talks to the real deployed `vault` contract on Stellar
@@ -51,11 +50,7 @@ export const App: React.FC = () => {
       log(`[REAL] Wallet connected: ${addr}`);
       await refreshBalance(addr);
     } catch (err) {
-      if (err instanceof FreighterNotDetectedError) {
-        log(`[ERROR] ${err.message}`);
-      } else {
-        log(`[ERROR] Wallet connection failed: ${(err as Error).message}`);
-      }
+      log(`[ERROR] Wallet connection failed: ${(err as Error).message}`);
     } finally {
       setConnecting(false);
     }
@@ -84,7 +79,7 @@ export const App: React.FC = () => {
     if (isNaN(val) || val <= 0) return;
 
     setLoading(true);
-    log(`[REAL] Signing a real deposit of ${val} XLM into the vault. Freighter will ask you to review and sign.`);
+    log(`[REAL] Signing a real deposit of ${val} XLM into the vault. Your wallet will ask you to review and sign.`);
     try {
       const shares = await depositRealXlm(address, val);
       log(`[REAL] Transaction confirmed. Minted ${shares.toString()} real vault shares on testnet.`);
@@ -110,7 +105,7 @@ export const App: React.FC = () => {
     if (shares <= 0n) return;
 
     setLoading(true);
-    log(`[REAL] Signing a real withdrawal of ${shares.toString()} vault shares. Freighter will ask you to review and sign.`);
+    log(`[REAL] Signing a real withdrawal of ${shares.toString()} vault shares. Your wallet will ask you to review and sign.`);
     try {
       const assets = await withdrawRealShares(address, shares);
       log(`[REAL] Transaction confirmed. Redeemed for ${(Number(assets) / Number(STROOPS_PER_XLM)).toFixed(7)} real XLM on testnet.`);
