@@ -48,6 +48,8 @@ We welcome contributions from Rust contract developers, quantitative strategists
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
+**Also tracked, not yet started: Protocol 28's migration-friendly contract data (CAP-86).** This workspace hit a real deserialization trap earlier from `BlendReserveConfig` not exactly field-matching Blend's real on-chain struct layout — Soroban's current host functions reject a struct that doesn't match exactly, missing or extra fields included. CAP-86's "sparse" host functions are aimed directly at that class of bug, tolerating schema drift instead of trapping on it. Mainnet vote is 2026-09-16; adopting this waits on stable SDK support, but it's a direct fit for a real problem this repo has already hit once.
+
 ---
 
 ## 🛠️ Developer Environment Quickstart
