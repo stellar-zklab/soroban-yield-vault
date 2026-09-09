@@ -85,9 +85,14 @@ if ! stellar contract invoke --id "$ADAPTER_ID" --source deployer --network "$NE
   exit 1
 fi
 
-echo "Setting strategy-router's active strategy to the Blend adapter..."
+echo "Registering the Blend adapter as a strategy on the router (multi-strategy debt allocator)..."
 stellar contract invoke --id "$ROUTER_ID" --source deployer --network "$NETWORK" \
-  -- set_strategy --admin "$DEPLOYER_ADDR" --strategy "$ADAPTER_ID"
+  -- add_strategy --admin "$DEPLOYER_ADDR" --strategy "$ADAPTER_ID"
+stellar contract invoke --id "$ROUTER_ID" --source deployer --network "$NETWORK" \
+  -- set_max_debt_for_strategy --admin "$DEPLOYER_ADDR" --strategy "$ADAPTER_ID" --max_debt "${MAX_DEBT_STROOPS:-100000000000000}"
+echo "NOTE: registering a strategy no longer auto-deploys funds to it (deposits now sit idle by"
+echo "design — see strategy_router's module doc comment). Once real deposits exist, allocate them with:"
+echo "  stellar contract invoke --id $ROUTER_ID --source deployer --network $NETWORK -- update_debt --admin $DEPLOYER_ADDR --strategy $ADAPTER_ID --desired_debt <amount>"
 
 echo "Pointing the new vault at the strategy-router..."
 stellar contract invoke --id "$VAULT_ID" --source deployer --network "$NETWORK" \
