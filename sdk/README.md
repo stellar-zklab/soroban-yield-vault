@@ -19,7 +19,7 @@ import { StellarYieldVaultClient } from '@stellar-zklab/yield-vault-sdk';
 import freighter from '@stellar/freighter-api';
 
 const vault = new StellarYieldVaultClient({
-  vaultContractId: 'CAUGDNJ4TUBNSMV6CIL356GLPTA77UFC3PNUQ7OKEFLRPY7TBJ3VWGP6',
+  vaultContractId: 'CAQ6YR3XKGS774M7ERT5DTGMMPFYZ4WLAIMOPCUBGAJLQKPLFUG6AETK', // live on testnet, see ../README.md's Deployment section
   signTransaction: async (xdr, opts) => {
     const { signedTxXdr } = await freighter.signTransaction(xdr, opts);
     return signedTxXdr;
