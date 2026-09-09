@@ -27,16 +27,17 @@ We welcome contributions from Rust contract developers, quantitative strategists
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                     DEVELOPMENT ROADMAP PHASES                          │
 │                                                                         │
-│  Phase 1: ERC-4626 Vault & Blend Strategy (Built & Tested)             │
+│  Phase 1: ERC-4626 Vault & Multi-Strategy Debt Allocator (Built & Tested)│
 │    ├── Vault contract (deposit/withdraw/share math, real token moves)  │
-│    ├── StrategyRouter contract (single-strategy, real fund forwarding)│
+│    ├── StrategyRouter: multi-strategy Debt Allocator (Yearn V3 model) │
+│    │   — add_strategy/set_max_debt_for_strategy/update_debt, real     │
+│    │   withdrawal-queue draining across registered strategies         │
 │    └── adapter-blend: real Blend V2 integration, live testnet pool    │
 │                                                                         │
-│  Phase 2: SDK & Real Multi-Strategy Support (Active Contribution)      │
+│  Phase 2: SDK & Second Strategy (Active Contribution)                  │
 │    ├── TypeScript SDK (@stellar-zklab/yield-vault-sdk) — real, tested │
-│    ├── adapter-phoenix: real swap+LP+stake integration, with IL       │
-│    │   exposure disclosed plainly wherever share price is shown       │
-│    └── strategy_router support for splitting across >1 strategy       │
+│    └── adapter-phoenix: real swap+LP+stake integration, with IL       │
+│        exposure disclosed plainly wherever share price is shown       │
 │                                                                         │
 │  Phase 3: Vault Dashboard & Analytics (Upcoming)                       │
 │    ├── React yield dashboard UI                                        │
