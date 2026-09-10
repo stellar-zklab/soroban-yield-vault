@@ -152,7 +152,15 @@ export const App: React.FC = () => {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#06120e', color: '#e2e8f0' }}>
       <div style={{ background: 'linear-gradient(135deg, #047857, #065f46)', color: '#fff', padding: '0.65rem 1.5rem', fontSize: '0.85rem', fontWeight: 600, textAlign: 'center' }}>
-        ✓ REAL vault contract on testnet — deposits earn real yield via a live Blend Protocol V2 pool. Only the Phoenix adapter is still a deliberate stub, see README.
+        ✓ REAL vault contract on testnet — deposits earn real yield via a live Blend Protocol V2 pool. Only the Phoenix adapter is still a deliberate stub, see{' '}
+        <a
+          href="https://github.com/stellar-zklab/soroban-yield-vault/blob/main/README.md"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: '#fff', textDecoration: 'underline' }}
+        >
+          README
+        </a>.
       </div>
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
