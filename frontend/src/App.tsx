@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './index.css';
 import {
   connectWallet,
@@ -6,10 +6,16 @@ import {
   withdrawRealShares,
   getRealShareBalance,
   convertRealAssetsToShares,
+  getStrategyAllocations,
+  getRouterTotalAssets,
+  StrategyAllocation,
   VAULT_CONTRACT_ID,
+  STRATEGY_ROUTER_CONTRACT_ID,
   NATIVE_TOKEN_ID,
   STROOPS_PER_XLM,
 } from './soroban';
+
+const formatXlm = (stroops: bigint): string => (Number(stroops) / Number(STROOPS_PER_XLM)).toLocaleString(undefined, { maximumFractionDigits: 2 });
 
 // Real integration — this UI talks to the real deployed `vault` contract on Stellar
 // testnet (see ../deployments/testnet.json). Deposits pull real native XLM from the
@@ -30,6 +36,11 @@ export const App: React.FC = () => {
   const [previewShares, setPreviewShares] = useState<bigint | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const [strategies, setStrategies] = useState<StrategyAllocation[] | null>(null);
+  const [routerTotalAssets, setRouterTotalAssets] = useState<bigint | null>(null);
+  const [strategiesLoading, setStrategiesLoading] = useState(false);
+  const [strategiesError, setStrategiesError] = useState<string | null>(null);
+
   const [logs, setLogs] = useState<string[]>([
     `[REAL] This app talks to the real deployed vault contract ${VAULT_CONTRACT_ID} on Stellar testnet — deposits and withdrawals are real signed transactions moving real testnet XLM (token ${NATIVE_TOKEN_ID}).`,
     '[NOTE] This vault is wired to a real strategy_router + adapter-blend supplying to a live Blend Protocol V2 pool on testnet — deposits earn real accrued interest. Only adapter-phoenix remains a deliberate stub (see README).',
@@ -41,6 +52,26 @@ export const App: React.FC = () => {
     const bal = await getRealShareBalance(addr);
     setShareBalance(bal);
   };
+
+  // Real contract reads, no wallet connection needed — the strategy router's allocation
+  // state is public data. Loaded on mount so the table is visible before anyone connects.
+  const loadStrategies = async () => {
+    setStrategiesLoading(true);
+    setStrategiesError(null);
+    try {
+      const [allocations, total] = await Promise.all([getStrategyAllocations(), getRouterTotalAssets()]);
+      setStrategies(allocations);
+      setRouterTotalAssets(total);
+    } catch (err) {
+      setStrategiesError((err as Error).message);
+    } finally {
+      setStrategiesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadStrategies();
+  }, []);
 
   const handleConnect = async () => {
     setConnecting(true);
@@ -221,6 +252,78 @@ export const App: React.FC = () => {
           </section>
 
         </div>
+
+        <section style={{ background: '#0c221a', padding: '1.75rem', borderRadius: '10px', border: '1px solid #163e30', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <h2 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, color: '#f8fafc' }}>Strategy Allocation</h2>
+            <button
+              onClick={loadStrategies}
+              disabled={strategiesLoading}
+              style={{ background: 'none', border: 'none', color: '#34d399', cursor: strategiesLoading ? 'default' : 'pointer', fontSize: '0.75rem', fontWeight: 600, padding: 0 }}
+            >
+              {strategiesLoading ? 'Refreshing...' : '↻ Refresh'}
+            </button>
+          </div>
+          <p style={{ margin: 0, fontSize: '0.78rem', color: '#94a3b8' }}>
+            Real, live reads from <code style={{ color: '#6ee7b7' }}>strategy_router</code> ({STRATEGY_ROUTER_CONTRACT_ID.slice(0, 6)}...{STRATEGY_ROUTER_CONTRACT_ID.slice(-4)}) —
+            every registered strategy's real max-debt cap and real current allocation, not a cached snapshot.
+          </p>
+
+          {strategiesError && (
+            <div style={{ background: '#2a0f0f', border: '1px solid #7f1d1d', color: '#fca5a5', padding: '0.75rem 1rem', borderRadius: '6px', fontSize: '0.8rem' }}>
+              Failed to load strategy allocation: {strategiesError}
+            </div>
+          )}
+
+          {!strategiesError && strategies && strategies.length === 0 && (
+            <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>No strategies registered on the router yet.</div>
+          )}
+
+          {!strategiesError && strategies && strategies.length > 0 && (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                <thead>
+                  <tr style={{ textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                    <th style={{ padding: '0 0 0.6rem 0', fontWeight: 600 }}>Strategy</th>
+                    <th style={{ padding: '0 0 0.6rem 0', fontWeight: 600 }}>Allocation</th>
+                    <th style={{ padding: '0 0 0.6rem 0', fontWeight: 600 }}>Amount</th>
+                    <th style={{ padding: '0 0 0.6rem 0', fontWeight: 600 }}>Cap</th>
+                    <th style={{ padding: '0 0 0.6rem 0', fontWeight: 600 }}>Headroom</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {strategies.map((s) => {
+                    const total = routerTotalAssets ?? 0n;
+                    const pct = total > 0n ? (Number(s.debt) / Number(total)) * 100 : 0;
+                    const headroom = s.maxDebt - s.debt;
+                    return (
+                      <tr key={s.address} style={{ borderTop: '1px solid #163e30' }}>
+                        <td style={{ padding: '0.7rem 0', color: '#f8fafc', fontWeight: 500 }}>{s.label}</td>
+                        <td style={{ padding: '0.7rem 0' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <div style={{ width: '60px', height: '6px', background: '#163e30', borderRadius: '3px', overflow: 'hidden' }}>
+                              <div style={{ width: `${Math.min(pct, 100)}%`, height: '100%', background: '#10b981' }} />
+                            </div>
+                            <span style={{ color: '#94a3b8' }}>{total > 0n ? `${pct.toFixed(1)}%` : '—'}</span>
+                          </div>
+                        </td>
+                        <td style={{ padding: '0.7rem 0', color: '#f8fafc' }}>{formatXlm(s.debt)} XLM</td>
+                        <td style={{ padding: '0.7rem 0', color: '#94a3b8' }}>{formatXlm(s.maxDebt)} XLM</td>
+                        <td style={{ padding: '0.7rem 0', color: '#94a3b8' }}>{formatXlm(headroom)} XLM free</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {!strategiesError && strategies && strategies.length > 0 && strategies.every((s) => s.debt === 0n) && (
+            <div style={{ fontSize: '0.78rem', color: '#fbbf24', background: 'rgba(251, 191, 36, 0.08)', border: '1px solid rgba(251, 191, 36, 0.25)', borderRadius: '6px', padding: '0.6rem 0.85rem' }}>
+              No funds allocated to any strategy yet — deposits currently sit idle in the router until an admin calls <code>update_debt</code>. This is a real, honest zero, not a loading placeholder.
+            </div>
+          )}
+        </section>
 
       </div>
     </div>

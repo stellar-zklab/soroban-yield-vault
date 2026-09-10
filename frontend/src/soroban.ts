@@ -10,8 +10,15 @@ import { Networks } from '@creit.tech/stellar-wallets-kit/types';
 export const NETWORK_PASSPHRASE = 'Test SDF Network ; September 2015';
 export const RPC_URL = 'https://soroban-testnet.stellar.org';
 
-export const VAULT_CONTRACT_ID = 'CAUGDNJ4TUBNSMV6CIL356GLPTA77UFC3PNUQ7OKEFLRPY7TBJ3VWGP6';
+export const VAULT_CONTRACT_ID = 'CAQ6YR3XKGS774M7ERT5DTGMMPFYZ4WLAIMOPCUBGAJLQKPLFUG6AETK';
+export const STRATEGY_ROUTER_CONTRACT_ID = 'CCOD4BBIZPBM6HJHVYOKXQUDF2KV43PRDRWHNTHECUD2JMOC2RRMNSVR';
 export const NATIVE_TOKEN_ID = 'CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC';
+
+// Friendly labels for known strategy addresses, so the allocation table doesn't just show
+// raw contract IDs. Anything not in this map falls back to a truncated address.
+export const KNOWN_STRATEGY_LABELS: Record<string, string> = {
+  CBP3J2QE56I7SEOS33OLFZAP3N4JJWKDRHZMPKPVUPGBXVKIONDSP5FQ: 'Blend Protocol V2 (adapter-blend)',
+};
 
 // The native XLM Stellar Asset Contract, like all Stellar assets, uses 7 decimal places
 // (stroops). The vault's own i128 amounts are in the same base unit as the underlying
@@ -104,5 +111,48 @@ export async function convertRealSharesToAssets(shares: bigint): Promise<bigint>
 export async function convertRealAssetsToShares(assets: bigint): Promise<bigint> {
   const client = await getClient(VAULT_CONTRACT_ID);
   const tx = await (client as any).convert_to_shares({ assets });
+  return tx.result as bigint;
+}
+
+export interface StrategyAllocation {
+  address: string;
+  label: string;
+  maxDebt: bigint;
+  debt: bigint;
+}
+
+/** Read-only: the real, live multi-strategy Debt Allocator state — every strategy the
+ * router admin has registered, each one's real max_debt cap and real current_debt, straight
+ * from strategy_router's own storage (get_strategies/get_max_debt/get_debt). No off-chain
+ * indexer or cached snapshot; every field here is a live contract read. */
+export async function getStrategyAllocations(): Promise<StrategyAllocation[]> {
+  const client = await getClient(STRATEGY_ROUTER_CONTRACT_ID);
+  const strategiesTx = await (client as any).get_strategies();
+  const addresses = strategiesTx.result as string[];
+
+  return Promise.all(
+    addresses.map(async (address) => {
+      const [maxDebtTx, debtTx] = await Promise.all([
+        (client as any).get_max_debt({ strategy: address }),
+        (client as any).get_debt({ strategy: address }),
+      ]);
+      return {
+        address,
+        label: KNOWN_STRATEGY_LABELS[address] ?? `${address.slice(0, 6)}...${address.slice(-4)}`,
+        maxDebt: maxDebtTx.result as bigint,
+        debt: debtTx.result as bigint,
+      };
+    })
+  );
+}
+
+/** Read-only: the strategy router's own real total_assets() — idle balance plus every
+ * registered strategy's live total_value(), summed on-chain. Used as the denominator for
+ * each strategy's allocation percentage; separate from the vault's total_assets() (which
+ * reads through this same number) so the allocation table works even if the vault's own
+ * read ever diverges for an unrelated reason. */
+export async function getRouterTotalAssets(): Promise<bigint> {
+  const client = await getClient(STRATEGY_ROUTER_CONTRACT_ID);
+  const tx = await (client as any).total_assets();
   return tx.result as bigint;
 }

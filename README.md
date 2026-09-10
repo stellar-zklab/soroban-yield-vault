@@ -97,17 +97,17 @@ Still a bare `#[contract]` with a single `version() -> 1` function. This isn't a
 
 ## Deployment
 
-All three contracts are live on Stellar testnet and wired together (deployed/redeployed 2026-09-05, see [`deployments/testnet.json`](deployments/testnet.json) — independently checkable on [stellar.expert](https://stellar.expert/explorer/testnet)):
+All three contracts are live on Stellar testnet and wired together (redeployed 2026-09-09 so `strategy_router` actually runs the multi-strategy Debt Allocator code — see the note below — full history in [`deployments/testnet.json`](deployments/testnet.json), independently checkable on [stellar.expert](https://stellar.expert/explorer/testnet)):
 
 | Contract | Address |
 |---|---|
-| `vault` | `CAUGDNJ4TUBNSMV6CIL356GLPTA77UFC3PNUQ7OKEFLRPY7TBJ3VWGP6` |
-| `strategy_router` | `CBRIDAO4NYYGMEUBYVSZ6O6U3SD73XHWLUDN56R3QPPLS2CTXAAPTBF4` |
-| `adapter_blend` | `CA4EF5DW4ZOLPETNFRGNWZUNCOUIZ4NIR5STGDZ56VCOJ3L7PZ7PP3X2` |
+| `vault` | `CAQ6YR3XKGS774M7ERT5DTGMMPFYZ4WLAIMOPCUBGAJLQKPLFUG6AETK` |
+| `strategy_router` | `CCOD4BBIZPBM6HJHVYOKXQUDF2KV43PRDRWHNTHECUD2JMOC2RRMNSVR` |
+| `adapter_blend` | `CBP3J2QE56I7SEOS33OLFZAP3N4JJWKDRHZMPKPVUPGBXVKIONDSP5FQ` |
 
-`vault` is initialized against testnet's real native XLM Stellar Asset Contract (`CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC`), not a placeholder token. `adapter_blend` targets a real, live [Blend Protocol V2](https://github.com/blend-capital/blend-contracts-v2) pool on testnet (`CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF`) — confirmed to actually carry an XLM reserve via a real `get_reserve()` call before this deployment was wired up. `vault.set_router()` points the vault at `strategy_router`, and `strategy_router.add_strategy()` + `set_max_debt_for_strategy()` + `update_debt()` allocate real funds to `adapter_blend`, so a real `deposit()` on `vault` now actually reaches the Blend pool. `scripts/deploy.sh` and `scripts/deploy_blend_strategy.sh` reproduce this from scratch.
+`vault` is initialized against testnet's real native XLM Stellar Asset Contract (`CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC`), not a placeholder token. `adapter_blend` targets a real, live [Blend Protocol V2](https://github.com/blend-capital/blend-contracts-v2) pool on testnet (`CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF`) — confirmed to actually carry an XLM reserve via a real `get_reserve()` call before this deployment was wired up. `vault.set_router()` points the vault at `strategy_router`, and `strategy_router.add_strategy()` + `set_max_debt_for_strategy()` (real transactions, confirmed via their `strat_add`/`maxdebt` events) registered `adapter_blend` with a 10,000,000 XLM cap, so a real `deposit()` on `vault` now actually reaches the Blend pool once an admin calls `update_debt()` to allocate. `scripts/deploy.sh` and `scripts/deploy_blend_strategy.sh` reproduce this from scratch.
 
-An earlier `vault` instance (`CC3KUCEJ7PXTJSHTFE3K52OR2U4QICJ7IUJG7YHXTIBQ62KSMH4G2HCR`, deployed 2026-09-03) predated the `set_router()` entrypoint and is stale — see `deployments/testnet.json`'s notes for why a vault redeploy was unavoidable once router integration landed. The `strategy_router` address above also predates the multi-strategy Debt Allocator rewrite (it only exposes the old single-strategy `set_strategy`/`get_strategy` API) — it needs a fresh `scripts/deploy_blend_strategy.sh` run before `add_strategy`/`set_max_debt_for_strategy`/`update_debt` will actually exist on-chain for it.
+Two earlier `vault` instances are stale: the original (`CC3KUCEJ7PXTJSHTFE3K52OR2U4QICJ7IUJG7YHXTIBQ62KSMH4G2HCR`, 2026-09-03) predated `set_router()` entirely, and the 2026-09-05 one (`CAUGDNJ4TUBNSMV6CIL356GLPTA77UFC3PNUQ7OKEFLRPY7TBJ3VWGP6`) was paired with a `strategy_router` that still only exposed the old single-strategy `set_strategy`/`get_strategy` API — a stale build artifact got redeployed unchanged, not a code regression (the source has had the multi-strategy rewrite since 2026-09-05; see `deployments/testnet.json`'s notes for the full history). The `strategy_router` address above is confirmed live with the real `add_strategy`/`get_strategies`/`get_max_debt`/`get_debt` interface — this is what the frontend's Strategy Allocation table (see below) reads from.
 
 ## Usage
 
@@ -116,7 +116,7 @@ import { StellarYieldVaultClient } from '@stellar-zklab/yield-vault-sdk';
 import freighter from '@stellar/freighter-api';
 
 const vault = new StellarYieldVaultClient({
-  vaultContractId: 'CAUGDNJ4TUBNSMV6CIL356GLPTA77UFC3PNUQ7OKEFLRPY7TBJ3VWGP6', // live on testnet, see Deployment above
+  vaultContractId: 'CAQ6YR3XKGS774M7ERT5DTGMMPFYZ4WLAIMOPCUBGAJLQKPLFUG6AETK', // live on testnet, see Deployment above
   signTransaction: async (xdr, opts) => {
     const { signedTxXdr } = await freighter.signTransaction(xdr, opts);
     return signedTxXdr;
@@ -132,6 +132,8 @@ const totalManaged = await vault.getTotalAssets();
 ```
 
 See [`sdk/README.md`](sdk/README.md) for the full API (`withdraw`, `getShareBalance`, `previewWithdraw`) — every method above calls this vault's actual deployed contract, not a mock.
+
+**Strategy Allocation table (added 2026-09-09).** The [live demo](https://soroban-yield-vault.vercel.app/) now shows a real-time table of every strategy `strategy_router` has registered — allocation %, amount, max-debt cap, and free headroom — read live via `get_strategies`/`get_max_debt`/`get_debt` (`frontend/src/soroban.ts`'s `getStrategyAllocations`/`getRouterTotalAssets`). No wallet connection needed to view it, since this is public on-chain state. Modeled on Yearn V3's own vault-strategy breakdown UI. Right now it shows one honest zero — `adapter_blend` registered with a 10,000,000 XLM cap and 0 currently allocated, since the freshly redeployed router has no deposits yet — the table states this plainly rather than looking broken or loading forever.
 
 ## 🚀 Quick start
 
