@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { StellarYieldVaultClient } from '../src/client';
 
-const dummySign = vi.fn(async (xdr: string) => xdr);
+const dummySign = vi.fn(async (xdr: string) => ({ signedTxXdr: xdr }));
 
 describe('StellarYieldVaultClient config', () => {
   it('applies default testnet rpcUrl and networkPassphrase when not supplied', () => {

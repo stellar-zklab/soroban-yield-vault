@@ -20,10 +20,7 @@ import freighter from '@stellar/freighter-api';
 
 const vault = new StellarYieldVaultClient({
   vaultContractId: 'CAQ6YR3XKGS774M7ERT5DTGMMPFYZ4WLAIMOPCUBGAJLQKPLFUG6AETK', // live on testnet, see ../README.md's Deployment section
-  signTransaction: async (xdr, opts) => {
-    const { signedTxXdr } = await freighter.signTransaction(xdr, opts);
-    return signedTxXdr;
-  },
+  signTransaction: async (xdr, opts) => freighter.signTransaction(xdr, opts),
 });
 
 const { sharesMinted, txHash } = await vault.deposit({ depositor: userAddress, amount: 10_0000000n });
