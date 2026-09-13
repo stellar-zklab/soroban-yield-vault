@@ -5,6 +5,7 @@ members = [
     "contracts/strategy_router",
     "contracts/adapters/blend",
     "contracts/adapters/phoenix",
+    "contracts/adapters/soroswap",
 ]
 
 [workspace.dependencies]
