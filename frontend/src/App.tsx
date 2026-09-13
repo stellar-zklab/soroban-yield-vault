@@ -328,7 +328,7 @@ export const App: React.FC = () => {
 
           {!strategiesError && strategies && strategies.length > 0 && strategies.every((s) => s.debt === 0n) && (
             <div style={{ fontSize: '0.78rem', color: '#fbbf24', background: 'rgba(251, 191, 36, 0.08)', border: '1px solid rgba(251, 191, 36, 0.25)', borderRadius: '6px', padding: '0.6rem 0.85rem' }}>
-              No funds allocated to any strategy yet — deposits currently sit idle in the router until an admin calls <code>update_debt</code>. This is a real, honest zero, not a loading placeholder.
+              No funds allocated to any strategy yet — deposits currently sit idle until an admin allocates them. This is a real zero, not a loading placeholder.
             </div>
           )}
         </section>
