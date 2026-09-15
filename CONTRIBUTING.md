@@ -91,7 +91,7 @@ cargo build --release --target wasm32v1-none
 
 ## 📋 How to Claim an Issue & Submit a PR
 
-1. **Pick an Issue**: Browse open tasks on [GitHub Issues](https://github.com/stellar-zklab/soroban-yield-vault/issues). Look for [`good-first-issue`](https://github.com/stellar-zklab/soroban-yield-vault/issues?q=is%3Aissue+is%3Aopen+label%3A%22good-first-issue%22).
+1. **Pick an Issue**: Browse open tasks on [GitHub Issues](https://github.com/stellar-zklab/soroban-yield-vault/issues). Look for [`good first issue`](https://github.com/stellar-zklab/soroban-yield-vault/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
 2. **Create a Branch**: `git checkout -b feat/your-feature-name`
 3. **Verify Locally**: Run `bash scripts/check-source-artifacts.sh` and ensure `cargo test --all --features testutils` passes — the same checks CI runs.
 4. **Submit PR**: Open a Pull Request referencing the issue number (e.g. `Closes #5`).
