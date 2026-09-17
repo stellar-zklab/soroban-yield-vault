@@ -27,7 +27,11 @@ exist, resolves testnet's real native XLM Stellar Asset Contract ID, builds and 
 
 ## What this does NOT deploy
 
-`contracts/adapters/blend`, `contracts/adapters/phoenix`, and `contracts/strategy_router`
-are not deployed — each is still a bare `version() -> 1` stub with no real protocol
-integration (see the README's Current Status section). Deploying them would put a
-contract address on-chain implying a working yield strategy that doesn't exist yet.
+`contracts/adapters/blend` and `contracts/strategy_router` have real, working
+implementations (real Blend Protocol V2 cross-contract calls and real multi-strategy
+routing, respectively — see `docs/STRATEGIES.md`), but neither is deployed by
+`deploy.sh` yet; only `vault` is. `contracts/adapters/phoenix` is the one still a bare
+`version() -> 1` stub with no real protocol integration (see the README's Current Status
+section). Deploying the real blend/strategy_router pair without also wiring them into
+the vault via `set_router` wouldn't do anything useful yet; deploying phoenix would put a
+contract address on-chain implying a working yield strategy that doesn't exist.
